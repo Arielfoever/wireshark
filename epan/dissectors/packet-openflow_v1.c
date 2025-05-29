@@ -143,7 +143,21 @@ static int hf_openflow_out_port;
 static int hf_openflow_flags;
 static int hf_openflow_v1_stats_type;
 static int hf_openflow_v1_flow_stats_request_pad;
-
+/* static expert_field ofp_port_stats ; */
+static int hf_openflow_v1_port_stats_port_no;
+static int hf_openflow_v1_port_stats_pad;
+static int hf_openflow_v1_port_stats_rx_packets;
+static int hf_openflow_v1_port_stats_tx_packets;
+static int hf_openflow_v1_port_stats_rx_bytes;
+static int hf_openflow_v1_port_stats_tx_bytes;
+static int hf_openflow_v1_port_stats_rx_dropped;
+static int hf_openflow_v1_port_stats_tx_dropped;
+static int hf_openflow_v1_port_stats_rx_errors;
+static int hf_openflow_v1_port_stats_tx_errors;
+static int hf_openflow_v1_port_stats_rx_frame_err;
+static int hf_openflow_v1_port_stats_rx_over_err;
+static int hf_openflow_v1_port_stats_rx_crc_err;
+static int hf_openflow_v1_port_stats_collisions;
 /* Initialize the subtree pointers */
 static int ett_openflow;
 static int ett_openflow_path_id;
@@ -157,6 +171,9 @@ static int ett_openflow_port_cf;
 /* static expert_field ei_openflow_undecoded_data; */
 static expert_field ei_openflow_action_type;
 static expert_field ei_openflow_1_0_type;
+
+
+
 
 static const value_string openflow_version_values[] = {
     { 0x01, "1.0" },
@@ -366,6 +383,24 @@ dissect_openflow_flow_stats_request_v1(tvbuff_t *tvb, packet_info *pinfo, proto_
     /* uint16_t out_port; */
     proto_tree_add_item(tree, hf_openflow_out_port, tvb, offset, 2, ENC_BIG_ENDIAN);
     offset += 2;
+
+    return offset;
+
+}
+static int
+dissect_openflow_port_stats_request_v1(tvbuff_t *tvb, packet_info *_U_, proto_tree *tree, int offset)
+{
+    /* uint16_t port_no;
+ OFPST_PORT message must request statistics
+* either for a single port (specified in
+* port_no) or for all ports (if port_no ==
+* OFPP_NONE). 
+     */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_port_no, tvb, offset, 2, ENC_BIG_ENDIAN);
+    offset += 2;
+    /* uint8_t pad[6];  Align to 32*6 bits. */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_pad,tvb, offset, 6, ENC_BIG_ENDIAN);
+    offset += 6;
 
     return offset;
 
@@ -839,6 +874,9 @@ dissect_openflow_stats_req(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, 
     case OFPST_FLOW:
         dissect_openflow_flow_stats_request_v1(tvb, pinfo, tree, offset);
         break;
+    case OFPST_PORT:
+        dissect_openflow_port_stats_request_v1(tvb, pinfo, tree, offset);
+        break;
     default:
         expert_add_info(pinfo, type_item, &ei_openflow_1_0_type);
         break;
@@ -846,7 +884,59 @@ dissect_openflow_stats_req(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, 
 
     return offset;
 }
+static int
+dissect_openflow_port_stats_res_v1(tvbuff_t *tvb, packet_info *_U_, proto_tree *tree, int offset)
+{
+    /* uint16_t port_no;
+ OFPST_PORT message must request statistics
+* either for a single port (specified in
+* port_no) or for all ports (if port_no ==
+* OFPP_NONE). 
+     */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_port_no, tvb, offset, 2, ENC_BIG_ENDIAN);
+    offset += 2;
+    /* uint8_t pad[6];  Align to 32*6 bits. */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_pad, tvb, offset, 6, ENC_BIG_ENDIAN);
+    offset += 6;
+    /*uint64_t rx_packets;  Number of received packets. */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_rx_packets, tvb, offset, 8, ENC_BIG_ENDIAN);
+    offset += 8;
+    /*uint64_t tx_packets;  Number of received packets. */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_tx_packets, tvb, offset, 8, ENC_BIG_ENDIAN);
+    offset += 8;
+    /*uint64_t rx_bytes; */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_rx_bytes, tvb, offset, 8, ENC_BIG_ENDIAN);
+    offset += 8;
+    /*uint64_t tx_bytes; */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_tx_bytes, tvb, offset, 8, ENC_BIG_ENDIAN);
+    offset += 8;
+/*uint64_t rx_dropped; */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_rx_dropped, tvb, offset, 8, ENC_BIG_ENDIAN);
+    offset += 8;
+    /*uint64_t tx_dropped; */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_tx_dropped, tvb, offset, 8, ENC_BIG_ENDIAN);
+    offset += 8;
+    /*uint64_t rx_errors; */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_rx_errors, tvb, offset, 8, ENC_BIG_ENDIAN);
+    offset += 8;
+    /*uint64_t rx_errors; */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_tx_errors, tvb, offset, 8, ENC_BIG_ENDIAN);
+    offset += 8;
+    /*uint64_t rx_errors; */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_rx_frame_err, tvb, offset, 8, ENC_BIG_ENDIAN);
+    offset += 8;
+    /*uint64_t rx_errors; */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_rx_over_err, tvb, offset, 8, ENC_BIG_ENDIAN);
+    offset += 8;
+    /*uint64_t rx_errors; */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_rx_crc_err, tvb, offset, 8, ENC_BIG_ENDIAN);
+    offset += 8;
+    /*uint64_t rx_errors; */
+    proto_tree_add_item(tree, hf_openflow_v1_port_stats_collisions, tvb, offset, 8, ENC_BIG_ENDIAN);
+    offset += 8;
+    return offset;
 
+}
 static int
 dissect_openflow_stats_resp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, int offset, uint16_t length)
 {
@@ -871,6 +961,9 @@ dissect_openflow_stats_resp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree,
         break;
     case OFPST_FLOW:
         /* fall trough */
+    case OFPST_PORT:
+        dissect_openflow_port_stats_res_v1(tvb, pinfo, tree, offset);
+        break;
     default:
         expert_add_info(pinfo, type_item, &ei_openflow_1_0_type);
         break;
@@ -1531,11 +1624,81 @@ proto_register_openflow_v1(void)
               FT_UINT16, BASE_DEC, VALS(openflow_stats_type_values), 0x0,
               NULL, HFILL }
         },
+        { &hf_openflow_v1_port_stats_port_no,
+            { "Port", "openflow.stats.port_no",
+              FT_UINT16, BASE_DEC, NULL, 0x0,
+              NULL, HFILL }
+        },
         { &hf_openflow_v1_flow_stats_request_pad,
             { "Pad", "openflow.stats.request_pad",
               FT_UINT8, BASE_DEC, NULL, 0x0,
               NULL, HFILL }
         },
+        { &hf_openflow_v1_port_stats_pad,
+            { "Pad", "openflow.stats.pad",
+              FT_BYTES, BASE_NONE, NULL, 0x0,
+              NULL, HFILL }
+        },
+        { &hf_openflow_v1_port_stats_rx_packets,
+            { "RX Packages", "openflow.stats.rx_packets",
+              FT_UINT64, BASE_DEC, NULL, 0x0,
+              NULL, HFILL }
+        },
+        { &hf_openflow_v1_port_stats_tx_packets,
+            { "TX Packages", "openflow.stats.tx_packets",
+              FT_UINT64, BASE_DEC, NULL, 0x0,
+              NULL, HFILL }
+        },
+        { &hf_openflow_v1_port_stats_rx_bytes,
+            { "RX Bytes", "openflow.stats.rx_bytes",
+              FT_UINT64, BASE_DEC, NULL, 0x0,
+              NULL, HFILL }
+        },
+        { &hf_openflow_v1_port_stats_tx_bytes,
+            { "TX Bytes", "openflow.stats.tx_bytes",
+              FT_UINT64, BASE_DEC, NULL, 0x0,
+              NULL, HFILL }
+        },
+        { &hf_openflow_v1_port_stats_rx_dropped,
+            { "RX Dropped", "openflow.stats.rx_dropped",
+              FT_UINT64, BASE_DEC, NULL, 0x0,
+              NULL, HFILL }
+        },
+        { &hf_openflow_v1_port_stats_tx_dropped,
+            { "TX Dropped", "openflow.stats.tx_dropped",
+              FT_UINT64, BASE_DEC, NULL, 0x0,
+              NULL, HFILL }
+        },
+        { &hf_openflow_v1_port_stats_rx_errors,
+            { "RX Errors", "openflow.stats.rx_errors",
+              FT_UINT64, BASE_DEC, NULL, 0x0,
+              NULL, HFILL }
+        },
+        { &hf_openflow_v1_port_stats_tx_errors,
+            { "TX Errors", "openflow.stats.tx_errors",
+              FT_UINT64, BASE_DEC, NULL, 0x0,
+              NULL, HFILL }
+        },
+        { &hf_openflow_v1_port_stats_rx_frame_err,
+            { "RX Frame Errors", "openflow.stats.rx_frame_err",
+              FT_UINT64, BASE_DEC, NULL, 0x0,
+              NULL, HFILL }
+        },
+        { &hf_openflow_v1_port_stats_rx_over_err,
+            { "RX Over Errors", "openflow.stats.rx_over_err",
+              FT_UINT64, BASE_DEC, NULL, 0x0,
+              NULL, HFILL }
+        },
+        { &hf_openflow_v1_port_stats_rx_crc_err,
+            { "RX CRC Errors", "openflow.stats.rx_crc_err",
+              FT_UINT64, BASE_DEC, NULL, 0x0,
+              NULL, HFILL }
+        },
+        { &hf_openflow_v1_port_stats_collisions,
+            { "Collisions", "openflow.stats.collisions",
+              FT_UINT64, BASE_DEC, NULL, 0x0,
+              NULL, HFILL }
+        }
     };
 
     static int *ett[] = {
